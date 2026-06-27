@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffd9e3">
+<title>응원 키보드 💗</title>
+<style>
+  :root {
+    --bg1: #2a1138;
+    --bg2: #0c0613;
+    --text: #5a4453;   /* 키캡 글자(밝은 키 위) */
+    --page: #f3e6ff;   /* 어두운 배경 위 글자 */
+    --accent: #ff6bd6;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: radial-gradient(circle at 50% 0%, var(--bg1), var(--bg2));
+    color: var(--page);
+    font-family: -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    user-select: none; -webkit-user-select: none;
+  }
+  body {
+    display: flex; flex-direction: column;
+    min-height: 100%;
+    padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom);
+  }
+
+  header { text-align: center; padding: 16px 6px 4px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
+  .subtitle { margin: 5px 0 0; font-size: 13px; opacity: 0.6; }
+
+  /* 가운데 큰 메시지 */
+  .stage {
+    flex: 0 0 auto;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  #bigMsg {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.7);
+    text-align: center;
+    text-shadow: 0 3px 10px rgba(255,107,157,.25);
+  }
+  #bigMsg.show {
+    animation: pop 1.1s ease-out;
+  }
+  @keyframes pop {
+    0%   { opacity: 0; transform: scale(0.6); }
+    20%  { opacity: 1; transform: scale(1.12); }
+    45%  { transform: scale(1); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.02); }
+  }
+
+  .counter { text-align: center; font-size: 13px; opacity: 0.55; margin-bottom: 6px; }
+  .counter b { color: var(--accent); font-size: 16px; }
+
+  /* 키보드 */
+  .kbd-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 6px 0 14px; }
+  .kbd { width: 100%; max-width: 480px; }
+  .row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .row:last-child { margin-bottom: 0; }
+
+  .key {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    max-width: 110px;
+    border: none;
+    border-radius: 20px;
+    --hue: 330;
+    background: linear-gradient(hsl(var(--hue),100%,94%), hsl(var(--hue),90%,76%));
+    box-shadow: 0 6px 0 hsl(var(--hue),55%,64%), 0 8px 14px rgba(80,40,70,.25);
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px;
+    cursor: pointer;
+    transition: transform .05s, box-shadow .05s, background .05s;
+    word-break: keep-all;
+  }
+  /* 형광 네온 후광 (각 키 색에 맞춤) */
+  .key::before {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 26px;
+    background: hsl(var(--hue), 100%, 60%);
+    filter: blur(10px);
+    opacity: 0.5;
+    z-index: -1;
+    animation: neonPulse 2.2s ease-in-out infinite;
+    transition: opacity .12s, filter .12s, inset .12s;
+  }
+  @keyframes neonPulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 0.85; }
+  }
+  .key .emoji {
+    font-size: 30px;
+    filter: drop-shadow(0 0 6px hsla(var(--hue),100%,55%,.7));
+  }
+  .key.pressed {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 hsl(var(--hue),55%,64%), 0 2px 5px rgba(80,40,70,.3);
+    background: linear-gradient(hsl(var(--hue),100%,97%), hsl(var(--hue),95%,82%));
+  }
+  /* 누르면 형광 불빛이 확 밝아짐 */
+  .key.pressed::before {
+    opacity: 1;
+    filter: blur(16px) brightness(1.6);
+    inset: -12px;
+  }
+  /* 퍼지는 빛의 고리 */
+  .ring {
+    position: fixed;
+    pointer-events: none;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 14px 4px var(--ring-color, #ff4ecd), inset 0 0 10px var(--ring-color, #ff4ecd);
+    animation: ringPulse .6s ease-out forwards;
+    z-index: 60;
+  }
+  @keyframes ringPulse {
+    from { opacity: 0.9; transform: scale(0.3); }
+    to   { opacity: 0;   transform: scale(4); }
+  }
+
+  @media (max-width: 420px) {
+    .key { font-size: 15px; border-radius: 16px; }
+    .key .emoji { font-size: 26px; }
+    .row { gap: 9px; margin-bottom: 9px; }
+    #bigMsg { font-size: 28px; }
+  }
+
+  footer { text-align: center; font-size: 11px; opacity: 0.45; padding: 4px 0 8px; }
+
+  /* 떠오르는 하트 */
+  .float {
+    position: fixed;
+    pointer-events: none;
+    font-size: 26px;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 50;
+  }
+  @keyframes floatUp {
+    from { opacity: 1; transform: translate(-50%, 0) scale(0.8) rotate(0deg); }
+    to   { opacity: 0; transform: translate(-50%, -90px) scale(1.5) rotate(20deg); }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>💗 응원 키보드</h1>
+    <p class="subtitle">버튼을 톡 누르면 응원의 말이 도착해요</p>
+  </header>
+
+  <div class="stage"><div id="bigMsg"></div></div>
+
+  <div class="counter">오늘 받은 응원 <b id="count">0</b>번</div>
+
+  <div class="kbd-wrap">
+    <div class="kbd" id="kbd"></div>
+  </div>
+
+  <footer>설치 없이 작동 · 인터넷 없이도 소리가 나요</footer>
+
+<script>
+"use strict";
+
+/* ---------- 키 구성: 3개 → 4개 → 5개 ---------- */
+/* msg: 눌렀을 때 크게 뜨는 말 / 화면 표시 라벨은 label */
+const ROWS = [
+  [ // 3개
+    { label: "💗", msg: "사랑해", emoji: true },
+    { label: "힘내", msg: "힘내!" },
+    { label: "💗", msg: "토닥토닥", emoji: true },
+  ],
+  [ // 4개
+    { label: "괜찮아", msg: "다 괜찮아" },
+    { label: "잘하고\n있어", msg: "잘하고 있어" },
+    { label: "화이팅", msg: "화이팅!" },
+    { label: "최고야", msg: "네가 최고야" },
+  ],
+  [ // 5개
+    { label: "고마워", msg: "고마워" },
+    { label: "수고\n했어", msg: "오늘도 수고했어" },
+    { label: "💗", msg: "넌 소중해", emoji: true },
+    { label: "푹 쉬어", msg: "푹 쉬어" },
+    { label: "다 잘될\n거야", msg: "다 잘될 거야" },
+  ],
+];
+
+const HEARTS = ["💗","💕","💖","💝","🌸","✨","💞"];
+
+const kbd = document.getElementById("kbd");
+const totalKeys = ROWS.reduce((s, r) => s + r.length, 0);
+let keyIndex = 0;
+ROWS.forEach(keys => {
+  const row = document.createElement("div");
+  row.className = "row";
+  keys.forEach(k => {
+    const btn = document.createElement("button");
+    btn.className = "key";
+    btn.dataset.msg = k.msg;
+    // 무지개색: 키마다 다른 색조
+    const hue = Math.round((keyIndex / totalKeys) * 360);
+    btn.style.setProperty("--hue", hue);
+    btn.dataset.hue = hue;
+    keyIndex++;
+    if (k.emoji) {
+      btn.innerHTML = '<span class="emoji">' + k.label + '</span>';
+    } else {
+      btn.innerHTML = k.label.replace(/\n/g, "<br>");
+    }
+    row.appendChild(btn);
+  });
+  kbd.appendChild(row);
+});
+
+/* ---------- 키보드 소리 합성 ---------- */
+let actx = null;
+function ensureAudio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === "suspended") actx.resume();
+}
+let noiseBuffer = null;
+function getNoise() {
+  if (!noiseBuffer && actx) {
+    const len = Math.floor(actx.sampleRate * 0.08);
+    noiseBuffer = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuffer;
+}
+// 부드럽고 동글동글한 키보드 소리
+function playKey() {
+  if (!actx) return;
+  const t = actx.currentTime;
+  const out = actx.createGain();
+  out.gain.value = 0.7;
+  out.connect(actx.destination);
+  const vary = 0.9 + Math.random() * 0.2;
+
+  // 딸깍(노이즈)
+  const n = actx.createBufferSource();
+  n.buffer = getNoise();
+  const bp = actx.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 1500 * vary;
+  bp.Q.value = 0.8;
+  const ng = actx.createGain();
+  ng.gain.setValueAtTime(0.35, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  n.connect(bp); bp.connect(ng); ng.connect(out);
+  n.start(t); n.stop(t + 0.09);
+
+  // 톡(저음)
+  const o = actx.createOscillator();
+  o.type = "sine";
+  o.frequency.setValueAtTime(125 * vary, t);
+  o.frequency.exponentialRampToValueAtTime(80 * vary, t + 0.12);
+  const og = actx.createGain();
+  og.gain.setValueAtTime(0.7, t);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  o.connect(og); og.connect(out);
+  o.start(t); o.stop(t + 0.16);
+}
+
+/* ---------- 응원 표시 ---------- */
+let count = 0;
+const bigMsg = document.getElementById("bigMsg");
+const countEl = document.getElementById("count");
+
+function showMessage(msg, x, y) {
+  bigMsg.textContent = msg;
+  bigMsg.classList.remove("show");
+  void bigMsg.offsetWidth;
+  bigMsg.classList.add("show");
+
+  count++;
+  countEl.textContent = count;
+
+  // 하트 흩날리기
+  const n = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < n; i++) {
+    const f = document.createElement("div");
+    f.className = "float";
+    f.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+    f.style.left = (x + (Math.random() * 60 - 30)) + "px";
+    f.style.top = (y - 10) + "px";
+    f.style.animationDelay = (i * 0.05) + "s";
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 1100);
+  }
+}
+
+function spawnRing(x, y, hue) {
+  const ring = document.createElement("div");
+  ring.className = "ring";
+  ring.style.left = x + "px";
+  ring.style.top = y + "px";
+  ring.style.setProperty("--ring-color", "hsl(" + hue + ",100%,60%)");
+  document.body.appendChild(ring);
+  setTimeout(() => ring.remove(), 600);
+}
+
+function hit(el, x, y) {
+  ensureAudio();
+  playKey();
+  if (navigator.vibrate) navigator.vibrate(10);
+  el.classList.add("pressed");
+  setTimeout(() => el.classList.remove("pressed"), 110);
+  spawnRing(x, y, el.dataset.hue || 320);
+  showMessage(el.dataset.msg, x, y);
+}
+
+/* ---------- 입력 (터치 + 마우스) ---------- */
+kbd.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  for (const tch of e.changedTouches) {
+    const el = document.elementFromPoint(tch.clientX, tch.clientY);
+    const key = el && el.closest(".key");
+    if (key) hit(key, tch.clientX, tch.clientY);
+  }
+}, { passive: false });
+
+kbd.addEventListener("mousedown", (e) => {
+  const key = e.target.closest(".key");
+  if (key) hit(key, e.clientX, e.clientY);
+});
+
+document.body.addEventListener("touchstart", ensureAudio, { once: true });
+document.body.addEventListener("mousedown", ensureAudio, { once: true });
+</script>
+</body>
+</html>
